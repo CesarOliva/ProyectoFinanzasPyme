@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Cuentas Claras">
+  <rect width="64" height="64" rx="16" fill="#0d1117"/>
+  <rect x="14" y="34" width="8" height="16" rx="3" fill="#4a90d9" opacity=".55"/>
+  <rect x="28" y="25" width="8" height="25" rx="3" fill="#4a90d9" opacity=".8"/>
+  <rect x="42" y="16" width="8" height="34" rx="3" fill="#7cb6ec"/>
+  <path d="M13 27 L26 18 L36 22 L51 10" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

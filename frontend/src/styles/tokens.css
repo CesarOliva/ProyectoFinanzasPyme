@@ -1,0 +1,137 @@
+/* =====================================================================
+   Tokens de diseño · Cuentas Claras
+   Blanco, negro y azul celeste en tonos apagados. Los colores de las
+   gráficas (--s1..--s6) están validados para daltonismo en ambos modos.
+   ===================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Superficies */
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #f7f9fb;
+  --surface-hover: #f1f5f9;
+  --line: #e2e7ee;
+  --line-soft: #edf1f5;
+
+  /* Tinta */
+  --ink: #0e1319;
+  --ink-2: #3a4351;
+  --muted: #6b7684;
+  --faint: #9aa4b1;
+
+  /* Marca: azul celeste apagado */
+  --celeste: #4a90d9;
+  --celeste-strong: #2f6fb3;
+  --celeste-soft: #e6f0fa;
+  --celeste-tint: #f3f8fd;
+  --negro: #0d1117;
+  --negro-2: #161c25;
+
+  /* Menú lateral: claro en modo claro, negro en modo oscuro */
+  --sidebar-bg: #ffffff;
+  --sidebar-borde: #e2e7ee;
+  --sidebar-ink: #4b5563;
+  --sidebar-ink-fuerte: #0e1319;
+  --sidebar-seccion: #9aa4b1;
+  --sidebar-hover: #f1f5f9;
+  --sidebar-activo: linear-gradient(90deg, rgb(74 144 217 / 0.16), rgb(74 144 217 / 0.04));
+  --sidebar-pie-bg: #f7f9fb;
+  --sidebar-pie-borde: #e2e7ee;
+  --sidebar-pie-ink: #6b7684;
+
+  /* Estado (semáforo) — siempre con ícono + texto */
+  --ok: #0ca30c;
+  --ok-ink: #11702a;
+  --ok-soft: #e7f5ea;
+  --warn: #fab219;
+  --warn-ink: #7f5300;
+  --warn-soft: #fdf3dc;
+  --bad: #d03b3b;
+  --bad-ink: #a92b2b;
+  --bad-soft: #fbe9e9;
+
+  /* Series de gráficas (orden fijo, validado) */
+  --s1: #3d8fd9; /* ventas / entradas */
+  --s2: #eb6834; /* costos / gastos / salidas */
+  --s3: #1baf7a; /* utilidad */
+  --s4: #eda100;
+  --s5: #e87ba4;
+  --s6: #4a3aa7;
+  --grid: #e9edf2;
+  --axis: #8b95a2;
+
+  /* Tipografía: una sola familia, escala modular 1.2 */
+  --font: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-xs: 0.75rem;   /* 12 */
+  --fs-sm: 0.8125rem; /* 13 */
+  --fs-base: 0.9375rem; /* 15 */
+  --fs-md: 1.0625rem; /* 17 */
+  --fs-lg: 1.25rem;   /* 20 */
+  --fs-xl: 1.625rem;  /* 26 */
+  --fs-2xl: 2.25rem;  /* 36 */
+  --fs-hero: 2.875rem; /* 46 */
+
+  /* Espaciado (base 4) y forma */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 1px 2px rgb(13 17 23 / 0.05);
+  --shadow: 0 1px 2px rgb(13 17 23 / 0.04), 0 6px 20px -8px rgb(13 17 23 / 0.12);
+  --shadow-lg: 0 24px 60px -20px rgb(13 17 23 / 0.35);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sidebar-w: 248px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0f14;
+  --surface: #141a22;
+  --surface-2: #19202a;
+  --surface-hover: #1d2530;
+  --line: #262f3b;
+  --line-soft: #1f2732;
+  --ink: #eef2f6;
+  --ink-2: #c3cbd5;
+  --muted: #8b96a4;
+  --faint: #626d7b;
+  --celeste: #5aa2e6;
+  --celeste-strong: #7cb6ec;
+  --celeste-soft: #16283b;
+  --celeste-tint: #121e2b;
+  --negro: #070a0e;
+  --negro-2: #0f141b;
+  --sidebar-bg: #0d1117;
+  --sidebar-borde: #1a212b;
+  --sidebar-ink: #aab4c0;
+  --sidebar-ink-fuerte: #ffffff;
+  --sidebar-seccion: #5f6b79;
+  --sidebar-hover: rgb(255 255 255 / 0.04);
+  --sidebar-activo: linear-gradient(90deg, rgb(74 144 217 / 0.22), rgb(74 144 217 / 0.06));
+  --sidebar-pie-bg: #161c25;
+  --sidebar-pie-borde: #1f2731;
+  --sidebar-pie-ink: #8e9aa8;
+  --ok-ink: #5fd36f;
+  --ok-soft: #10261a;
+  --warn-ink: #f4c35a;
+  --warn-soft: #2a2110;
+  --bad-ink: #f08a8a;
+  --bad-soft: #2c1517;
+  --s1: #4594dc;
+  --s2: #d95926;
+  --s3: #199e70;
+  --s4: #c98500;
+  --s5: #d55181;
+  --s6: #9085e9;
+  --grid: #222b36;
+  --axis: #6f7a88;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -10px rgb(0 0 0 / 0.6);
+}
