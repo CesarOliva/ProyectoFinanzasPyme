@@ -23,3 +23,10 @@ Thumbs.db
 .vscode/
 .idea/
 *.log
+
+# Proyecto
+dist/
+.staging/
+.staging_test/
+*.sqlite
+coverage/

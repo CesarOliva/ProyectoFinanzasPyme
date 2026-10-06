@@ -1,0 +1,20 @@
+﻿# API
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9      # subida de archivos en FastAPI
+pydantic[email]>=2.9           # EmailStr valida correos
+pydantic-settings>=2.5       # configuración desde variables de entorno
+# Base de datos (MySQL)
+sqlalchemy>=2.0.35
+pymysql>=1.1                 # driver MySQL en Python puro
+cryptography>=43             # requerido por PyMySQL para la autenticación caching_sha2 de MySQL 8
+alembic>=1.13                # migraciones versionadas
+# Ingesta
+pandas>=2.2
+openpyxl>=3.1
+# IA local (Ollama) por HTTP
+httpx>=0.27
+# Autenticación
+PyJWT>=2.9
+# Pruebas
+pytest>=8.3
