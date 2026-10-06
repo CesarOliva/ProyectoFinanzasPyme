@@ -55,27 +55,31 @@ Toda funcionalidad debe ayudar a responder una de estas preguntas en menos de 30
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | Next.js (React) + TypeScript, gráficas con Recharts |
-| Backend | Python + FastAPI |
-| Base de datos | PostgreSQL |
+| Frontend | React + Vite + TypeScript, gráficas con Recharts, animaciones con Framer Motion, voz con Web Speech API (es-MX) |
+| Backend | Python + FastAPI (SQLAlchemy Core + Pydantic) |
+| Base de datos | MySQL 8 local (SQLite en memoria solo para pruebas) |
 | Ingesta / ETL | pandas + openpyxl; LLM para mapear columnas |
 | Forecasting | statsmodels / Prophet (fase 2); promedio móvil en fase 1 |
-| IA | API de Claude para el parser de columnas y la redacción de alertas/consejos |
+| IA | **Ollama local (`llama3.2:3b`)** para el parser de columnas y la redacción de alertas, consejos y respuestas del chatbot "Clara" |
 | Pruebas | pytest (backend), Vitest/Testing Library (frontend) |
+
+> Cambios aprobados el 2026-10-06: Next.js → React + Vite, PostgreSQL → MySQL, API de Claude → Ollama. Motivos en `docs/decisiones.md`.
 
 Si necesitas agregar una dependencia relevante, justifícalo en una línea.
 
 ## 5. Modelo de datos (mínimo)
 
-Todas las tablas de negocio incluyen `id_empresa` (FK a `empresas`). Montos en `NUMERIC(12,2)`, moneda MXN. Fechas en UTC o `DATE` según corresponda.
+Todas las tablas de negocio incluyen `id_empresa` (FK a `empresas`). Montos en `NUMERIC(12,2)`, moneda MXN. Fechas en UTC o `DATE` según corresponda. Fuente única del esquema: `backend/app/db/models.py` (detalle en `docs/esquema.md`).
 
 ```
-empresas ──┬── gastos_fijos
-           ├── gastos_variables
-           ├── productos_cat ──┐
-           ├── historial_ventas ┘ (FK a productos_cat)
+usuarios ── usuarios_empresas (rol: dueno | consulta) ── empresas
+empresas ──┬── productos_cat ──┬── historial_ventas   (registro de ventas)
+           │                   └── compras_producto   (registro de compras de producto)
+           ├── gastos_operativos  (tipo: fijo | variable | retiro)
            └── importaciones
 ```
+
+> Implementado: `gastos_fijos` y `gastos_variables` se unificaron en `gastos_operativos` con `tipo`; se agregaron `usuarios`, `usuarios_empresas` y `compras_producto`; `tipo='retiro'` registra el dinero que el dueño saca (afecta el efectivo, no la utilidad).
 
 - **empresas:** `id_empresa` (PK), `nombre_negocio`, `giro`, `regimen_fiscal` (nullable, fase 2), `fecha_registro`.
 - **gastos_fijos:** `id_gasto_fijo` (PK), `id_empresa`, `concepto`, `monto_mensual`, `dia_pago`. Renta, nómina base, servicios fijos, licencias.
@@ -146,18 +150,21 @@ Ejemplos de tono:
 ## 9. Arquitectura y estructura sugerida
 
 ```
-[ Next.js / React ]  ⇄ HTTPS ⇄  [ FastAPI ]
+[ React + Vite ]     ⇄ HTTPS ⇄  [ FastAPI ]
                                    ├─ ingestion/   (profiling, mapeo IA, limpieza, carga)
                                    ├─ finance/     (KPIs, estado de resultados, punto de equilibrio)
                                    ├─ forecasting/ (ForecastService: baseline → Prophet/ARIMA)
                                    ├─ alerts/      (reglas deterministas + redacción con LLM)
+                                   ├─ chat/        (intención → hechos calculados → redacción con LLM)
+                                   ├─ llm/         (cliente Ollama + guardia de cifras)
                                    └─ db/          (modelos, migraciones, vistas)
-                                        └─ PostgreSQL
+                                        └─ MySQL
 ```
 
 ```
-/frontend   app/ (rutas por módulo), components/, lib/api.ts
-/backend    app/{ingestion,finance,forecasting,alerts,db,api}, tests/
+/frontend   src/{pages,components,context,hooks,lib,styles}, lib/api.ts
+/backend    app/{ingestion,finance,forecasting,alerts,chat,llm,db,api}, scripts/generar_seed.py, tests/
+/database   schema.sql, cuentas_claras.sql (generados por el script de seed)
 /docs       decisiones.md, esquema.md
 ```
 
