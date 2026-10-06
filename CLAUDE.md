@@ -31,6 +31,7 @@ Toda funcionalidad debe ayudar a responder una de estas preguntas en menos de 30
 
 | Módulo | Contenido |
 |---|---|
+| Contexto del negocio | Se incluirá mediante un formulario de personalización de perfil, datos que servirán de contexto para el LLM |
 | Ingesta | Subir Excel/CSV, mapeo de columnas asistido por IA, validación, carga a SQL, historial de importaciones |
 | Resumen | Tarjetas KPI: ventas, costo de ventas, utilidad bruta, gastos, utilidad, margen. Filtro por mes/trimestre/año |
 | Finanzas | Estado de resultados simplificado, ingresos vs gastos por mes, utilidad mensual, distribución de gastos (dona), punto de equilibrio |
@@ -57,10 +58,10 @@ Toda funcionalidad debe ayudar a responder una de estas preguntas en menos de 30
 |---|---|
 | Frontend | Next.js (React) + TypeScript, gráficas con Recharts |
 | Backend | Python + FastAPI |
-| Base de datos | PostgreSQL |
+| Base de datos | MySQL |
 | Ingesta / ETL | pandas + openpyxl; LLM para mapear columnas |
 | Forecasting | statsmodels / Prophet (fase 2); promedio móvil en fase 1 |
-| IA | API de Claude para el parser de columnas y la redacción de alertas/consejos |
+| IA | Modelo local Llama3.2:3b para el parser de columnas y la redacción de alertas/consejos |
 | Pruebas | pytest (backend), Vitest/Testing Library (frontend) |
 
 Si necesitas agregar una dependencia relevante, justifícalo en una línea.
