@@ -189,7 +189,7 @@ def ventas(ctx: Contexto) -> Hechos:
         f"Frente a {r.periodo_anterior.etiqueta}: {pct_cambio(v.ventas)} ({dinero(r.kpis_anterior.ventas)})",
     ]
     lineas += [f"{d.etiqueta}: {d.valor if d.formato == 'texto' else dinero(d.valor)}"
-               for d in r.datos_clave if d.etiqueta in ("Venta diaria promedio", "Mejor día", "Día más flojo")]
+               for d in r.datos_clave if d.etiqueta in ("Venta diaria promedio", "Mejor día", "Día con menos ventas")]
     secciones = [("Tus ventas", lineas)]
     if (ctx.hasta - ctx.desde).days > 40:
         mensual = servicio.serie(ctx.conn, ctx.id_empresa, ctx.desde, ctx.hasta, "mes")
@@ -281,8 +281,6 @@ def gastos(ctx: Contexto) -> Hechos:
         f"Fijos: {dinero(k.gastos_fijos)} · Variables: {dinero(k.gastos_variables)}",
         f"Frente a {r.periodo_anterior.etiqueta}: {pct_cambio(r.variaciones.gastos_operacion)}",
     ]
-    if fz.retiros:
-        resumen_l.append(f"Además retiraste {dinero(fz.retiros)} para uso personal (no es gasto, pero sí sale efectivo).")
     mayor = fz.distribucion_gastos[0] if fz.distribucion_gastos else None
     return Hechos(
         titulo=f"¿En qué se va tu dinero? · {ctx.periodo}",
@@ -311,7 +309,6 @@ def flujo(ctx: Contexto) -> Hechos:
         f"Entró por ventas: {dinero(fl.entradas)}",
         f"Salió en compras de mercancía: {dinero(fl.compras)}",
         f"Salió en gastos: {dinero(fl.gastos)}",
-        f"Retiros del dueño: {dinero(fl.retiros)}",
         f"Efectivo al final: **{dinero(fl.saldo_final)}**",
     ]
     secciones = [(f"Tu efectivo en {ctx.periodo}", periodo_l)]
@@ -452,7 +449,7 @@ def analisis_completo(ctx: Contexto) -> Hechos:
     gastos_l.append(f"**Total de gastos de operación: {dinero(k.gastos_operacion)}**")
     flujo_l = [f"Efectivo inicial: {dinero(fl.saldo_inicial)}", f"Entradas por ventas: {dinero(fl.entradas)}",
                f"Compras de mercancía: {dinero(fl.compras)}", f"Gastos: {dinero(fl.gastos)}",
-               f"Retiros del dueño: {dinero(fl.retiros)}", f"**Efectivo final: {dinero(fl.saldo_final)}**"]
+               f"**Efectivo final: {dinero(fl.saldo_final)}**"]
     if fl.proyeccion:
         flujo_l.append(f"Proyección a 30 días: {dinero(fl.proyeccion.saldo_proyectado)}")
     inv = p.inventario

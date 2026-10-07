@@ -127,7 +127,7 @@ def test_gastos_infiere_tipo_y_bloquea_formula(cliente, ana):
     vista = cliente.post(f"/api/empresas/1/importaciones/{analisis['token']}/previsualizar", headers=ana,
                          json={"mapeo": mapeo}).json()
     tipos = {f["concepto"]: f["tipo"] for f in vista["muestra"]}
-    assert tipos["Renta del local"] == "fijo" and tipos["Retiro personal"] == "retiro"
+    assert tipos["Renta del local"] == "fijo" and tipos["Retiro personal"] == "variable"
     assert tipos["Bolsas y empaque"] == "variable"
     assert not any(c.startswith("=") for c in tipos)
 

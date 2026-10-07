@@ -25,7 +25,6 @@ class KPIs(BaseModel):
     margen: float | None
     margen_bruto: float | None
     unidades: float
-    retiros: float
 
 
 class Variaciones(BaseModel):
@@ -96,7 +95,6 @@ class Finanzas(BaseModel):
     mensual: list[PuntoSerie]
     distribucion_gastos: list[CategoriaGasto]
     punto_equilibrio: PuntoEquilibrio
-    retiros: float
 
 
 Semaforo = Literal["verde", "amarillo", "rojo", "sin_movimiento"]
@@ -145,7 +143,6 @@ class PuntoFlujoMensual(BaseModel):
     entradas: float
     compras: float
     gastos: float
-    retiros: float
     neto: float
     saldo: float
 
@@ -181,7 +178,6 @@ class Flujo(BaseModel):
     entradas: float
     compras: float
     gastos: float
-    retiros: float
     saldo_final: float
     mensual: list[PuntoFlujoMensual]
     diario: list[PuntoSaldo]

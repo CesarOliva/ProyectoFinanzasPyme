@@ -64,7 +64,7 @@ CAMPOS: dict[str, list[Campo]] = {
               ("concepto", "descripcion", "detalle", "gasto", "motivo")),
         Campo("monto", "Monto", True, "Cuánto pagaste", "1200.00", ("monto", "importe", "total", "cantidad", "pago", "cargo")),
         Campo("categoria", "Categoría", False, "Renta, Servicios, Sueldos, Insumos…", "Renta", ("categoria", "rubro", "clasificacion")),
-        Campo("tipo", "Tipo", False, "fijo, variable o retiro (si no lo pones, lo deduzco)", "fijo",
+        Campo("tipo", "Tipo", False, "fijo o variable (si no lo pones, lo deduzco)", "fijo",
               ("tipo", "tipo de gasto", "clase")),
     ],
 }

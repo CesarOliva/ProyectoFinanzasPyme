@@ -36,17 +36,17 @@ export function Flujo() {
       ]
     : [];
   const estado = !proy ? null : proy.saldo_proyectado < 0 ? "rojo" : proy.inferior < 0 ? "amarillo" : "verde";
-  const mensual = (f?.mensual ?? []).map((m) => ({ ...m, salidas: m.compras + m.gastos + m.retiros }));
+  const mensual = (f?.mensual ?? []).map((m) => ({ ...m, salidas: m.compras + m.gastos }));
 
   return (
     <Pagina eyebrow="Flujo de efectivo" titulo="¿Te va a alcanzar el efectivo?"
-      descripcion="Lo que entra contra lo que sale de tu caja, incluyendo compras de mercancía y lo que retiras para ti, y una proyección simple a 30 días.">
+      descripcion="Lo que entra contra lo que sale de tu caja, incluyendo compras de mercancía y gastos del negocio, y una proyección simple a 30 días.">
       {fl.error && <Aviso tipo="error">{fl.error}</Aviso>}
       {f ? (
         <div className="grid grid-kpi">
           <KpiCard indice={0} etiqueta="Efectivo al inicio" valor={f.saldo_inicial} formato={(n) => dinero(Math.round(n), false)} />
           <KpiCard indice={1} etiqueta="Entró por ventas" valor={f.entradas} formato={(n) => dinero(Math.round(n), false)} />
-          <KpiCard indice={2} etiqueta="Salió" tecnico="Compras de mercancía + gastos + retiros del dueño" valor={f.compras + f.gastos + f.retiros}
+          <KpiCard indice={2} etiqueta="Salió" tecnico="Compras de mercancía + gastos del negocio" valor={f.compras + f.gastos}
             formato={(n) => dinero(Math.round(n), false)} nota={`compras ${dineroCompacto(f.compras)} · gastos ${dineroCompacto(f.gastos)}`} />
           <KpiCard indice={3} etiqueta="Efectivo al final" valor={f.saldo_final} formato={(n) => dinero(Math.round(n), false)}
             nota={f.periodo.etiqueta} />
@@ -129,9 +129,8 @@ export function Flujo() {
               {[
                 { k: "Compras de mercancía", v: f.compras, c: SERIE.gastos, d: "Lo que pagaste a proveedores para resurtir." },
                 { k: "Gastos del negocio", v: f.gastos, c: SERIE.s4, d: "Renta, sueldos, servicios, insumos…" },
-                { k: "Retiros del dueño", v: f.retiros, c: SERIE.s6, d: "Dinero que sacaste para ti. No es gasto, pero sí sale de la caja." },
               ].map((x, i) => {
-                const total = f.compras + f.gastos + f.retiros || 1;
+                const total = f.compras + f.gastos || 1;
                 return (
                   <div key={x.k} className="pila" style={{ gap: 6 }}>
                     <div className="fila-entre pequeno">

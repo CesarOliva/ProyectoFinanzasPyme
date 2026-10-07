@@ -68,7 +68,7 @@ def ventas_diarias(conn: Connection, id_empresa: int, desde: date, hasta: date) 
 
 
 def gastos_diarios(conn: Connection, id_empresa: int, desde: date, hasta: date) -> list[dict]:
-    """Gastos (incluye retiros) agrupados por día, categoría y tipo."""
+    """Gastos agrupados por día, categoría y tipo."""
     filas = conn.execute(
         text("""
             SELECT fecha, categoria, tipo, SUM(monto) AS monto

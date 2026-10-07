@@ -79,7 +79,7 @@ export function Ayuda({ texto }: { texto: string }) {
 
 /* ---------- Chip de cambio vs periodo anterior ---------- */
 export function Cambio({ valor, invertido = false }: { valor: number | null; invertido?: boolean }) {
-  if (valor === null || valor === undefined) return <span className="cambio neutro">sin comparación</span>;
+  if (valor === null || valor === undefined) return <span className="cambio neutro">Sin datos</span>;
   const bueno = invertido ? valor < 0 : valor > 0;
   const clase = Math.abs(valor) < 0.0005 ? "neutro" : bueno ? "sube" : "baja";
   const Icono = valor > 0 ? ArrowUpRight : valor < 0 ? ArrowDownRight : Minus;

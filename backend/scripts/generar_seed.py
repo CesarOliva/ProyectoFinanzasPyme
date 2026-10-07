@@ -503,26 +503,6 @@ def saldo_hasta(emp: Empresa, res: Resultado, gastos: list[list], hasta: dt.date
     return emp.saldo_inicial + entradas - salidas
 
 
-def generar_retiros(res: Resultado, gastos: list[list], hasta: dt.date, proporcion: float = 0.85) -> list[list]:
-    """El dueño retira cada fin de mes una parte del efectivo que dejó el mes (si fue positivo)."""
-    netos: dict[tuple[int, int], float] = {}
-    for v in res.ventas:
-        clave = (v[1].year, v[1].month)
-        netos[clave] = netos.get(clave, 0.0) + v[2] * float(v[3])
-    for c in res.compras:
-        netos[(c[1].year, c[1].month)] = netos.get((c[1].year, c[1].month), 0.0) - c[2] * float(c[3])
-    for g in gastos:
-        if g[3] != "retiro":
-            netos[(g[0].year, g[0].month)] = netos.get((g[0].year, g[0].month), 0.0) - float(g[4])
-    retiros = []
-    for (anio, mes), neto in sorted(netos.items()):
-        fecha = dt.date(anio, mes, calendar.monthrange(anio, mes)[1])
-        monto = round(neto * proporcion / 100) * 100
-        if fecha <= hasta and monto > 0:
-            retiros.append([fecha, "Retiro del dueño (uso personal)", "Retiros del dueño", "retiro", float(monto)])
-    return retiros
-
-
 # ---------------------------------------------------------------------------
 # Ajuste exacto del caso base (solo Papelería)
 # ---------------------------------------------------------------------------
@@ -576,7 +556,7 @@ def cuadrar_caso_base(emp: Empresa, res: Resultado, gastos: list[list], rng: np.
     factor_g = (CASO_BASE["gastos"] - fijos) / variables
     for g in gastos:
         g[4] = d2(Decimal(str(g[4])) * factor_g) if g[3] == "variable" else d2(g[4])
-    residuo_g = CASO_BASE["gastos"] - sum(g[4] for g in gastos if en_ventana(g[0]) and g[3] != "retiro")
+    residuo_g = CASO_BASE["gastos"] - sum(g[4] for g in gastos if en_ventana(g[0]))
     ultimo_var = next(g for g in reversed(gastos) if g[3] == "variable" and en_ventana(g[0]))
     ultimo_var[4] += residuo_g
 
@@ -605,14 +585,14 @@ def construir() -> dict[str, list[dict]]:
             # Compra fuerte de temporada de invierno: se dimensiona para que el flujo proyectado
             # a 30 días quede negativo (alerta 🔴) sin que el efectivo actual sea negativo.
             agosto = dt.date(2026, 8, 31)
-            saldo_agosto = saldo_hasta(emp, res, gastos + generar_retiros(res, gastos, agosto), agosto)
+            saldo_agosto = saldo_hasta(emp, res, gastos, agosto)
             septiembre_normal = saldo_hasta(emp, res, gastos, FIN) - saldo_hasta(emp, res, gastos, agosto)
             neto_objetivo = -(saldo_agosto + 0.4 * saldo_agosto) / 2
             extra = max(0.0, septiembre_normal - neto_objetivo)
             res = simular(emp, mult, extra_temporada=round(extra))
             print(f"[{emp.clave}] efectivo al 31-ago: {saldo_agosto:,.0f}; compra de temporada: {extra:,.0f}")
 
-        gastos = sorted(gastos + generar_retiros(res, gastos, FIN), key=lambda g: g[0])
+        gastos = sorted(gastos, key=lambda g: g[0])
 
         # Stock final coherente: inicial + compras - ventas.
         stock = list(res.stock_inicial)
@@ -779,21 +759,19 @@ def resumen(filas: dict[str, list[dict]]) -> None:
         ventas = [v for v in filas["historial_ventas"] if v["id_empresa"] == ide]
         compras = [c for c in filas["compras_producto"] if c["id_empresa"] == ide]
         movimientos = [g for g in filas["gastos_operativos"] if g["id_empresa"] == ide]
-        gastos = [g for g in movimientos if g["tipo"] != "retiro"]
-        retiros = sum(g["monto"] for g in movimientos if g["tipo"] == "retiro")
         productos = [p for p in filas["productos_cat"] if p["id_empresa"] == ide]
         v26 = [v for v in ventas if en_ventana(v["fecha_hora"].date())]
         ing = sum(v["cantidad_vendida"] * v["precio_unitario"] for v in v26)
         cos = sum(v["cantidad_vendida"] * v["costo_unitario"] for v in v26)
-        gas = sum(g["monto"] for g in gastos if en_ventana(g["fecha"]))
+        gas = sum(g["monto"] for g in movimientos if en_ventana(g["fecha"]))
         ent = sum(v["cantidad_vendida"] * v["precio_unitario"] for v in ventas)
         sal = sum(c["cantidad"] * c["costo_unitario"] for c in compras) + sum(g["monto"] for g in movimientos)
         print(f"\n{e['nombre_negocio']}: productos={len(productos)} ventas={len(ventas)} "
-              f"compras={len(compras)} gastos={len(gastos)}")
+              f"compras={len(compras)} gastos={len(movimientos)}")
         print(f"  Ene-Sep 2026 -> ventas {ing:,.2f} costo {cos:,.2f} gastos {gas:,.2f} "
               f"utilidad {ing - cos - gas:,.2f} margen {(ing - cos - gas) / ing:.1%}")
-        print(f"  Retiros del dueño (2 años): {retiros:,.2f} · efectivo final: {e['saldo_inicial'] + ent - sal:,.2f}")
-        for nombre, registros in (("ventas", ventas), ("compras", compras), ("gastos", gastos)):
+        print(f"  Efectivo final: {e['saldo_inicial'] + ent - sal:,.2f}")
+        for nombre, registros in (("ventas", ventas), ("compras", compras), ("gastos", movimientos)):
             assert len(registros) >= MIN_REGISTROS, f"{e['nombre_negocio']}: solo {len(registros)} {nombre}"
 
 

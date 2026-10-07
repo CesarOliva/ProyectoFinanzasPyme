@@ -140,10 +140,9 @@ gastos_operativos = Table(
     Column("categoria", String(80), nullable=False),
     Column(
         "tipo",
-        Enum("fijo", "variable", "retiro", name="tipo_gasto"),
+        Enum("fijo", "variable", name="tipo_gasto"),
         nullable=False,
-        comment="fijo = renta, nómina, servicios; variable = insumos, fletes, comisiones; "
-        "retiro = dinero que el dueño saca para uso personal (afecta el efectivo, no la utilidad)",
+        comment="fijo = renta, nómina, servicios; variable = insumos, fletes, comisiones",
     ),
     Column("monto", Monto, nullable=False),
     Column("id_importacion", Integer, ForeignKey("importaciones.id_importacion", ondelete="SET NULL"), nullable=True),

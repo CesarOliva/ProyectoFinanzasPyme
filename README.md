@@ -105,7 +105,7 @@ Todas usan la contraseña **`Demo2026!`**. La pantalla de inicio tiene botones d
 | Productos | 35 | 45 | 28 |
 | Ventas | 11,357 | 24,856 | 3,216 |
 | Compras de producto | 813 | 3,544 | 1,122 |
-| Gastos operativos (incluye retiros del dueño) | 768 | 763 | 795 |
+| Gastos operativos | 744 | 739 | 777 |
 
 ## 6. Pruebas
 

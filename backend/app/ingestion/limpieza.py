@@ -16,12 +16,11 @@ FORMATOS_FECHA = ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d", "%d/%m/%Y %
 CENT = Decimal("0.01")
 PALABRAS_FIJO = ("renta", "sueldo", "nomina", "salario", "luz", "cfe", "agua", "internet", "telefono", "software",
                  "seguro", "licencia", "mensualidad", "sistema")
-PALABRAS_RETIRO = ("retiro", "uso personal", "personal", "dueno")
 CATEGORIAS = (("renta", "Renta"), ("sueldo", "Sueldos"), ("nomina", "Sueldos"), ("salario", "Sueldos"),
               ("luz", "Servicios"), ("agua", "Servicios"), ("internet", "Servicios"), ("telefono", "Servicios"),
               ("gas", "Servicios"), ("flete", "Fletes"), ("gasolina", "Fletes"), ("envio", "Fletes"),
               ("comision", "Comisiones"), ("publicidad", "Publicidad"), ("bolsa", "Insumos"), ("limpieza", "Insumos"),
-              ("mantenimiento", "Mantenimiento"), ("reparacion", "Mantenimiento"), ("retiro", "Retiros del dueño"))
+              ("mantenimiento", "Mantenimiento"), ("reparacion", "Mantenimiento"))
 
 
 def _plano(texto: str) -> str:
@@ -90,11 +89,7 @@ def tipo_de_gasto(valor: str, concepto: str, categoria: str) -> str:
         return "fijo"
     if v.startswith("var"):
         return "variable"
-    if v.startswith("ret") or "personal" in v:
-        return "retiro"
     texto = _plano(f"{concepto} {categoria}")
-    if any(p in texto for p in PALABRAS_RETIRO):
-        return "retiro"
     if any(p in texto for p in PALABRAS_FIJO):
         return "fijo"
     return "variable"

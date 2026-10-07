@@ -63,14 +63,13 @@ def _kpis(ventas_dia: list[dict], gastos_dia: list[dict]) -> KPIs:
     costo = sum((v["costo"] for v in ventas_dia), CERO)
     fijos = sum((g["monto"] for g in gastos_dia if g["tipo"] == "fijo"), CERO)
     variables = sum((g["monto"] for g in gastos_dia if g["tipo"] == "variable"), CERO)
-    retiros = sum((g["monto"] for g in gastos_dia if g["tipo"] == "retiro"), CERO)
     bruta = f.utilidad_bruta(ventas, costo)
     neta = f.utilidad(bruta, fijos + variables)
     return KPIs(
         ventas=float(ventas), costo_ventas=float(costo), utilidad_bruta=float(bruta),
         gastos_operacion=float(fijos + variables), gastos_fijos=float(fijos), gastos_variables=float(variables),
         utilidad=float(neta), margen=_num(f.margen(neta, ventas)), margen_bruto=_num(f.margen(bruta, ventas)),
-        unidades=float(sum((v["unidades"] for v in ventas_dia), CERO)), retiros=float(retiros),
+        unidades=float(sum((v["unidades"] for v in ventas_dia), CERO)),
     )
 
 
@@ -85,7 +84,7 @@ def _variacion(actual: float, anterior: float) -> float | None:
 def serie(conn: Connection, id_empresa: int, desde: date, hasta: date, granularidad: str = "dia") -> list[PuntoSerie]:
     """Serie de ventas, costo, gastos y utilidad agrupada por día, semana o mes."""
     ventas_dia = q.ventas_diarias(conn, id_empresa, desde, hasta)
-    gastos_dia = [g for g in q.gastos_diarios(conn, id_empresa, desde, hasta) if g["tipo"] != "retiro"]
+    gastos_dia = q.gastos_diarios(conn, id_empresa, desde, hasta)
 
     def clave(d: date) -> tuple[str, str]:
         if granularidad == "mes":
@@ -152,15 +151,13 @@ def resumen(conn: Connection, id_empresa: int, desde: date, hasta: date) -> Resu
                   valor=round(actual.ventas / max(dias_periodo, 1), 2), ayuda="Ventas del periodo entre los días del periodo"),
         DatoClave(etiqueta="Mejor día", formato="texto",
                   valor=f"{mejor['fecha']:%d/%m/%Y} · ${mejor['ingreso']:,.2f}" if mejor else None),
-        DatoClave(etiqueta="Día más flojo", formato="texto",
+        DatoClave(etiqueta="Día con menos ventas", formato="texto",
                   valor=f"{peor['fecha']:%d/%m/%Y} · ${peor['ingreso']:,.2f}" if peor else None),
         DatoClave(etiqueta="Unidades vendidas", formato="numero", valor=actual.unidades),
         DatoClave(etiqueta="Margen bruto", formato="porcentaje", valor=actual.margen_bruto,
                   ayuda="Lo que te queda de cada peso vendido después de pagar la mercancía"),
         DatoClave(etiqueta="Gastos fijos", formato="dinero", valor=actual.gastos_fijos,
                   ayuda="Renta, sueldos y servicios: los pagas aunque no vendas"),
-        DatoClave(etiqueta="Retiros del dueño", formato="dinero", valor=actual.retiros,
-                  ayuda="Dinero que sacaste para uso personal. No es gasto del negocio, pero sí reduce tu efectivo"),
         DatoClave(etiqueta="Efectivo al cierre", formato="dinero", valor=float(efectivo),
                   ayuda="Saldo inicial + todo lo que entró − todo lo que salió"),
     ]
@@ -209,9 +206,8 @@ def finanzas(conn: Connection, id_empresa: int, desde: date, hasta: date) -> Fin
     por_categoria: dict[str, Decimal] = defaultdict(lambda: CERO)
     tipos: dict[str, set[str]] = defaultdict(set)
     for g in gastos_dia:
-        if g["tipo"] != "retiro":
-            por_categoria[g["categoria"]] += g["monto"]
-            tipos[g["categoria"]].add(g["tipo"])
+        por_categoria[g["categoria"]] += g["monto"]
+        tipos[g["categoria"]].add(g["tipo"])
     total_gastos = sum(por_categoria.values(), CERO)
     distribucion = sorted(
         (CategoriaGasto(categoria=c, tipo=next(iter(tipos[c])) if len(tipos[c]) == 1 else "mixto", monto=float(m),
@@ -234,7 +230,7 @@ def finanzas(conn: Connection, id_empresa: int, desde: date, hasta: date) -> Fin
         margen_seguridad_mensual=_num(seguridad), cubierto=None if seguridad is None else seguridad >= 0,
     )
     return Finanzas(periodo=_periodo(desde, hasta), estado_resultados=estado, mensual=mensual,
-                    distribucion_gastos=distribucion, punto_equilibrio=equilibrio, retiros=k.retiros)
+                    distribucion_gastos=distribucion, punto_equilibrio=equilibrio)
 
 
 # ---------------------------------------------------------------------------
@@ -293,13 +289,13 @@ def flujo_saldo(conn: Connection, id_empresa: int, al_dia: date) -> Decimal:
 
 
 def _movimientos_por_dia(conn: Connection, id_empresa: int, desde: date, hasta: date) -> dict[date, dict[str, Decimal]]:
-    dias: dict[date, dict[str, Decimal]] = defaultdict(lambda: {"entradas": CERO, "compras": CERO, "gastos": CERO, "retiros": CERO})
+    dias: dict[date, dict[str, Decimal]] = defaultdict(lambda: {"entradas": CERO, "compras": CERO, "gastos": CERO})
     for v in q.ventas_diarias(conn, id_empresa, desde, hasta):
         dias[v["fecha"]]["entradas"] += v["ingreso"]
     for c in q.compras_diarias(conn, id_empresa, desde, hasta):
         dias[c["fecha"]]["compras"] += c["monto"]
     for g in q.gastos_diarios(conn, id_empresa, desde, hasta):
-        dias[g["fecha"]]["retiros" if g["tipo"] == "retiro" else "gastos"] += g["monto"]
+        dias[g["fecha"]]["gastos"] += g["monto"]
     return dias
 
 
@@ -312,8 +308,8 @@ def proyeccion(conn: Connection, id_empresa: int, dias: int = 30) -> Proyeccion 
     desde = corte - timedelta(days=servicio.ventana * 3)
     movimientos = _movimientos_por_dia(conn, id_empresa, desde, corte)
     entradas = completar_dias([(d, m["entradas"]) for d, m in movimientos.items()], desde, corte)
-    salidas = completar_dias([(d, m["compras"] + m["gastos"] + m["retiros"]) for d, m in movimientos.items()], desde, corte)
-    netos = completar_dias([(d, m["entradas"] - m["compras"] - m["gastos"] - m["retiros"]) for d, m in movimientos.items()],
+    salidas = completar_dias([(d, m["compras"] + m["gastos"]) for d, m in movimientos.items()], desde, corte)
+    netos = completar_dias([(d, m["entradas"] - m["compras"] - m["gastos"]) for d, m in movimientos.items()],
                            desde, corte)
     acumulado = servicio.acumulado(netos, dias)
     saldo = float(flujo_saldo(conn, id_empresa, corte))
@@ -336,15 +332,15 @@ def flujo(conn: Connection, id_empresa: int, desde: date, hasta: date) -> Flujo:
     mensual_acum: dict[str, dict] = {}
     for anio, mes in meses_en(desde, hasta):
         mensual_acum[f"{anio}-{mes:02d}"] = {"etiqueta": etiqueta_mes(anio, mes), "entradas": CERO, "compras": CERO,
-                                             "gastos": CERO, "retiros": CERO}
+                                             "gastos": CERO}
     diario: list[PuntoSaldo] = []
     actual = desde
     while actual <= hasta:
         m = movimientos.get(actual)
         if m:
-            saldo += m["entradas"] - m["compras"] - m["gastos"] - m["retiros"]
+            saldo += m["entradas"] - m["compras"] - m["gastos"]
             bucket = mensual_acum[f"{actual:%Y-%m}"]
-            for clave in ("entradas", "compras", "gastos", "retiros"):
+            for clave in ("entradas", "compras", "gastos"):
                 bucket[clave] += m[clave]
         diario.append(PuntoSaldo(fecha=actual, saldo=float(saldo)))
         actual += timedelta(days=1)
@@ -352,15 +348,15 @@ def flujo(conn: Connection, id_empresa: int, desde: date, hasta: date) -> Flujo:
     mensual: list[PuntoFlujoMensual] = []
     saldo_mes = saldo_inicial
     for clave, b in mensual_acum.items():
-        neto = b["entradas"] - b["compras"] - b["gastos"] - b["retiros"]
+        neto = b["entradas"] - b["compras"] - b["gastos"]
         saldo_mes += neto
         mensual.append(PuntoFlujoMensual(periodo=clave, etiqueta=b["etiqueta"], entradas=float(b["entradas"]),
                                          compras=float(b["compras"]), gastos=float(b["gastos"]),
-                                         retiros=float(b["retiros"]), neto=float(neto), saldo=float(saldo_mes)))
-    total = {c: sum((b[c] for b in mensual_acum.values()), CERO) for c in ("entradas", "compras", "gastos", "retiros")}
+                                         neto=float(neto), saldo=float(saldo_mes)))
+    total = {c: sum((b[c] for b in mensual_acum.values()), CERO) for c in ("entradas", "compras", "gastos")}
     return Flujo(
         periodo=_periodo(desde, hasta), saldo_inicial=float(saldo_inicial), entradas=float(total["entradas"]),
-        compras=float(total["compras"]), gastos=float(total["gastos"]), retiros=float(total["retiros"]),
+        compras=float(total["compras"]), gastos=float(total["gastos"]),
         saldo_final=float(saldo), mensual=mensual, diario=diario if len(diario) <= 400 else diario[:: len(diario) // 365 + 1],
         proyeccion=proyeccion(conn, id_empresa),
     )
