@@ -107,7 +107,7 @@ function BloquePrincipal({ idEmpresa, corte }: { idEmpresa: number; corte: strin
 export function Resumen() {
   const { empresa } = useSesion();
   const { params, seleccion } = usePeriodo();
-  const { enviar } = useChat();
+  const { abrirChat, enviar } = useChat();
   const id = empresa?.id_empresa;
   const listo = Boolean(id && empresa?.tiene_datos && params.desde);
   const resumen = useApi<TipoResumen>(listo ? `/empresas/${id}/resumen` : null, params);
@@ -136,7 +136,10 @@ export function Resumen() {
     <Pagina eyebrow={empresa?.nombre_negocio} titulo="Resumen de tu negocio"
       descripcion={`Tendencia de tu tienda y, abajo, cómo le fue en ${seleccion?.etiqueta.toLowerCase() ?? "el periodo"} comparado con el periodo anterior.`}
       acciones={
-        <button className="btn" onClick={() => enviar(`Hazme un análisis completo de ${seleccion?.etiqueta ?? "este periodo"}`)}>
+        <button className="btn" onClick={() => {
+          abrirChat();
+          enviar(`Hazme un análisis completo de ${seleccion?.etiqueta ?? "este periodo"}`);
+        }}>
           <Sparkles size={16} color="var(--celeste)" /> Análisis con Clara
         </button>
       }>

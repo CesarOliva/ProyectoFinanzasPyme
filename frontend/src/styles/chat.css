@@ -29,10 +29,10 @@
   color: #fff;
 }
 .orbe-clara.grande { width: 64px; height: 64px; }
-.orbe-clara.activa { animation: respirar 1.6s ease-in-out infinite; }
+.orbe-clara.activa { animation: respirar 2.4s ease-in-out infinite; }
 @keyframes respirar {
-  0%, 100% { transform: scale(1); box-shadow: 0 6px 16px -6px rgb(74 144 217 / 0.8); }
-  50% { transform: scale(1.07); box-shadow: 0 0 0 8px rgb(74 144 217 / 0.12), 0 6px 22px -4px rgb(74 144 217 / 0.9); }
+  0%, 100% { transform: scale(1); box-shadow: 0 6px 16px -6px rgb(74 144 217 / 0.65); }
+  50% { transform: scale(1.03); box-shadow: 0 0 0 5px rgb(74 144 217 / 0.08), 0 6px 20px -4px rgb(74 144 217 / 0.75); }
 }
 
 .chat-mensajes {

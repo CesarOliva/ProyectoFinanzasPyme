@@ -177,7 +177,7 @@ export function Conversacion({ compacto = false }: { compacto?: boolean }) {
         {mensajes.length === 0 && (
           <motion.div className="pila" style={{ alignItems: "center", textAlign: "center", padding: compacto ? "12px 4px" : "28px 8px" }}
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="orbe-clara grande activa" aria-hidden="true">
+            <span className="orbe-clara grande" aria-hidden="true">
               <Sparkles size={28} />
             </span>
             <h3 className="centrado">¡Hola! Soy Clara</h3>
@@ -246,7 +246,7 @@ export function Conversacion({ compacto = false }: { compacto?: boolean }) {
           value={voz.escuchando ? voz.parcial : texto}
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={alTeclear}
-          placeholder="Pregúntale a Clara… ej. ¿cuánto gané en agosto?"
+          placeholder="Pregúntale a Clara… ej. ¿cuánto gané este mes?"
           maxLength={500}
         />
         {ocupado && !texto.trim() ? (
