@@ -13,24 +13,21 @@ import { usePeriodo } from "../context/Periodo";
 import { useSesion } from "../context/Sesion";
 import { useApi } from "../hooks/useApi";
 import { dinero, dineroCompacto, fechaCorta, numero, pct } from "../lib/formato";
-import { rangoAtras } from "../lib/periodos";
 import type { Alerta, DatoClave, KPIs, PuntoSerie, Resumen as TipoResumen, Variaciones } from "../lib/tipos";
 
-type Rango = "1M" | "3M" | "6M" | "1A" | "2A";
 type Metrica = "ventas" | "utilidad" | "gastos";
 
-const RANGOS: Record<Rango, { meses: number; granularidad: "dia" | "semana" | "mes" }> = {
-  "1M": { meses: 1, granularidad: "dia" },
-  "3M": { meses: 3, granularidad: "dia" },
-  "6M": { meses: 6, granularidad: "semana" },
-  "1A": { meses: 12, granularidad: "semana" },
-  "2A": { meses: 24, granularidad: "mes" },
-};
+/** Granularidad de la gráfica según la duración del periodo elegido en la barra superior. */
+function granularidadDe(desde: string | undefined, hasta: string | undefined): "dia" | "semana" | "mes" {
+  if (!desde || !hasta) return "dia";
+  const dias = Math.round((Date.parse(hasta) - Date.parse(desde)) / 86400000);
+  return dias <= 62 ? "dia" : dias <= 190 ? "semana" : "mes";
+}
 
 /** Cada métrica de la gráfica sabe de dónde sacar su total y su cambio en la respuesta de /resumen. */
 const METRICAS: Record<Metrica, { texto: string; color: string; kpi: keyof KPIs; variacion: keyof Variaciones; invertido: boolean }> = {
   ventas: { texto: "Ventas", color: SERIE.ventas, kpi: "ventas", variacion: "ventas", invertido: false },
-  utilidad: { texto: "Lo que ganaste", color: SERIE.utilidad, kpi: "utilidad", variacion: "utilidad", invertido: false },
+  utilidad: { texto: "Ganancia", color: SERIE.utilidad, kpi: "utilidad", variacion: "utilidad", invertido: false },
   gastos: { texto: "Gastos", color: SERIE.gastos, kpi: "gastos_operacion", variacion: "gastos_operacion", invertido: true },
 };
 
@@ -44,16 +41,15 @@ function valorDato(d: DatoClave): string {
   return String(d.valor);
 }
 
-/** Bloque principal: la cifra grande, su cambio y la gráfica responden a SUS PROPIOS controles
- * (métrica y rango 1M–2A), no al filtro de periodo de la barra superior. */
-function BloquePrincipal({ idEmpresa, corte }: { idEmpresa: number; corte: string }) {
-  const [rango, setRango] = useState<Rango>("3M");
+/** Bloque principal: la cifra grande, su cambio y la gráfica responden al filtro de
+ * periodo de la barra superior (1 mes … 2 años). */
+function BloquePrincipal({ idEmpresa, totales }: { idEmpresa: number; totales: TipoResumen | null }) {
+  const { params } = usePeriodo();
   const [metrica, setMetrica] = useState<Metrica>("ventas");
-  const { desde, hasta } = rangoAtras(corte, RANGOS[rango].meses);
-  const serie = useApi<PuntoSerie[]>(`/empresas/${idEmpresa}/serie`, { desde, hasta, granularidad: RANGOS[rango].granularidad });
-  const totales = useApi<TipoResumen>(`/empresas/${idEmpresa}/resumen`, { desde, hasta });
+  const granularidad = granularidadDe(params.desde, params.hasta);
+  const serie = useApi<PuntoSerie[]>(params.desde ? `/empresas/${idEmpresa}/serie` : null, { ...params, granularidad });
   const m = METRICAS[metrica];
-  const t = totales.datos;
+  const t = totales;
   const actual = t ? Number(t.kpis[m.kpi]) : null;
   const anterior = t ? Number(t.kpis_anterior[m.kpi]) : null;
   const variacion = t ? t.variaciones[m.variacion] : null;
@@ -62,7 +58,7 @@ function BloquePrincipal({ idEmpresa, corte }: { idEmpresa: number; corte: strin
     <>
       <div className="fila-entre envolver" style={{ alignItems: "flex-start" }}>
         <div className="pila" style={{ gap: 6 }}>
-          <span className="eyebrow">{m.texto} · del {fechaCorta(desde)} al {fechaCorta(hasta)}</span>
+          <span className="eyebrow">{m.texto} · del {fechaCorta(params.desde ?? "")} al {fechaCorta(params.hasta ?? "")}</span>
           <div className="hero-cifra">
             <span className="grande" style={{ color: actual !== null && actual < 0 ? "var(--bad-ink)" : undefined }}>
               {actual === null ? "—" : <NumeroAnimado valor={actual} formato={enteros} />}
@@ -70,14 +66,12 @@ function BloquePrincipal({ idEmpresa, corte }: { idEmpresa: number; corte: strin
             {t && <Cambio valor={variacion} invertido={m.invertido} />}
           </div>
           <span className="pequeno muted num">
-            {t && anterior !== null ? <>vs {dinero(anterior)} en {t.periodo_anterior.etiqueta}</> : " "}
+            {t && anterior !== null ? (anterior === 0 ? "Sin comparación" : <>vs {dinero(anterior)} en {t.periodo_anterior.etiqueta}</>) : ""}
           </span>
         </div>
         <div className="pila" style={{ alignItems: "flex-end", gap: 8 }}>
           <Segmentado<Metrica> etiqueta="Qué ver" valor={metrica} onChange={setMetrica}
             opciones={(Object.keys(METRICAS) as Metrica[]).map((k) => ({ valor: k, texto: METRICAS[k].texto }))} />
-          <Segmentado<Rango> etiqueta="Rango de tiempo" valor={rango} onChange={setRango}
-            opciones={(Object.keys(RANGOS) as Rango[]).map((r) => ({ valor: r, texto: r }))} />
         </div>
       </div>
       <div className="hero-grafica">
@@ -94,8 +88,8 @@ function BloquePrincipal({ idEmpresa, corte }: { idEmpresa: number; corte: strin
               <XAxis dataKey="etiqueta" {...EJE} minTickGap={28} />
               <YAxis {...EJE} width={64} tickFormatter={(v) => dineroCompacto(v)} />
               <Tooltip content={<TooltipGrafica nombres={{ [metrica]: m.texto }} />} cursor={{ stroke: "var(--axis)", strokeWidth: 1 }} />
-              <Area key={`${metrica}-${rango}`} type="monotone" dataKey={metrica} stroke={m.color} strokeWidth={2} fill="url(#g-principal)"
-                activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--surface)" }} animationDuration={900} />
+                <Area key={`${metrica}-${granularidad}`} type="monotone" dataKey={metrica} stroke={m.color} strokeWidth={2} fill="url(#g-principal)"
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--surface)" }} animationDuration={900} />
             </AreaChart>
           </ResponsiveContainer>
         )}
@@ -133,8 +127,8 @@ export function Resumen() {
     valor === null || valor === undefined ? undefined : `vs ${formato(valor)} en ${ant}`;
 
   return (
-    <Pagina eyebrow={empresa?.nombre_negocio} titulo="Resumen de tu negocio"
-      descripcion={`Tendencia de tu tienda y, abajo, cómo le fue en ${seleccion?.etiqueta.toLowerCase() ?? "el periodo"} comparado con el periodo anterior.`}
+    <Pagina titulo="Resumen de tu negocio"
+      descripcion={`Tu negocio en números. Comparando ${r?.periodo.etiqueta ?? "este periodo"} con ${ant}.`}
       acciones={
         <button className="btn" onClick={() => {
           abrirChat();
@@ -143,11 +137,12 @@ export function Resumen() {
           <Sparkles size={16} color="var(--celeste)" /> Análisis con Clara
         </button>
       }>
+
       {resumen.error && <Aviso tipo="error">{resumen.error}</Aviso>}
 
       <div className="hero-ventas">
         <Tarjeta interactiva={false}>
-          {id && empresa?.ultimo_dato && <BloquePrincipal idEmpresa={id} corte={empresa.ultimo_dato} />}
+          {id && <BloquePrincipal idEmpresa={id} totales={r} />}
         </Tarjeta>
 
         <Tarjeta retraso={0.08}>

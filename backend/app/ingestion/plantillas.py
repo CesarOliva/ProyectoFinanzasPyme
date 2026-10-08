@@ -18,7 +18,7 @@ EJEMPLOS = {
                 ["12/09/2026", "Pluma BIC azul", 200, 3.5, "", "Papelera del Centro"]],
     "gastos": [["01/09/2026", "Renta del local", 1200, "Renta", "fijo"],
                ["05/09/2026", "Bolsas y empaque", 85.5, "Insumos", "variable"],
-               ["30/09/2026", "Retiro para gastos de la casa", 3000, "Retiros del dueño", "retiro"]],
+               ["30/09/2026", "Mantenimiento del mostrador", 450, "Mantenimiento", "variable"]],
 }
 
 

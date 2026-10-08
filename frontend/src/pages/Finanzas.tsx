@@ -67,12 +67,6 @@ export function Finanzas() {
                 );
               })}
             </div>
-            {f.retiros > 0 && (
-              <Aviso>
-                Además retiraste <strong>{dinero(f.retiros)}</strong> para uso personal. No es un gasto del negocio (por eso no
-                baja tu utilidad), pero sí sale de tu efectivo.
-              </Aviso>
-            )}
           </Tarjeta>
         ) : (
           <TarjetaCargando alto={380} />

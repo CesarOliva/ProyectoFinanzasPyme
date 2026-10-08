@@ -28,7 +28,7 @@ Montos en `DECIMAL(12,2)` (MXN). Toda tabla de negocio lleva `id_empresa`.
 | `productos_cat` | Registro de productos | `sku_o_nombre` (único por empresa), `categoria`, `unidad`, `stock_actual`, `stock_minimo`, `costo_promedio`, `precio_venta` |
 | `historial_ventas` | Registro de ventas | `id_producto`, `fecha_hora`, `cantidad_vendida`, `precio_unitario`, `costo_unitario` |
 | `compras_producto` | Registro de compras de producto | `id_producto`, `fecha`, `cantidad`, `costo_unitario`, `proveedor` |
-| `gastos_operativos` | Registro de gastos operativos | `fecha`, `concepto`, `categoria`, `tipo` (`fijo` \| `variable` \| `retiro`), `monto` |
+| `gastos_operativos` | Registro de gastos operativos | `fecha`, `concepto`, `categoria`, `tipo` (`fijo` \| `variable`), `monto` |
 | `importaciones` | Historial de cargas | `nombre_archivo`, `tipo_datos`, `estado`, `filas_ok`, `filas_con_error`, `detalle_errores` (JSON) |
 
 **Índices:** `(id_empresa, fecha_hora)` en ventas · `(id_empresa, fecha)` en compras y gastos · `(id_empresa, id_producto)` en productos · `(id_empresa, fecha)` en importaciones.
@@ -44,5 +44,5 @@ Montos en `DECIMAL(12,2)` (MXN). Toda tabla de negocio lleva `id_empresa`.
 | Gastos de operación | Σ monto con `tipo` en (`fijo`, `variable`) | `gastos_operativos` |
 | Utilidad | ventas − costo de ventas − gastos de operación − impuestos (0 en fase 1) | |
 | Punto de equilibrio mensual | gastos fijos al mes ÷ ((ventas − costo de ventas − gastos variables) ÷ ventas) | |
-| Efectivo | saldo inicial + ventas − compras − gastos − retiros | ventas, compras, gastos |
+| Efectivo | saldo inicial + ventas − compras − gastos | ventas, compras, gastos |
 | Días de inventario | stock actual ÷ venta diaria promedio (últimos 30 días) | |

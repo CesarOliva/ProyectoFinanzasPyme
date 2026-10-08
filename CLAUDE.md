@@ -32,7 +32,7 @@ Toda funcionalidad debe ayudar a responder una de estas preguntas en menos de 30
 | Módulo | Contenido |
 |---|---|
 | Ingesta | Subir Excel/CSV, mapeo de columnas asistido por IA, validación, carga a SQL, historial de importaciones |
-| Resumen | Tarjetas KPI: ventas, costo de ventas, utilidad bruta, gastos, utilidad, margen. Filtro por mes/trimestre/año |
+| Resumen | Tarjetas KPI: ventas, costo de ventas, utilidad bruta, gastos, utilidad, margen. Filtro por rango (1 mes … 2 años) |
 | Finanzas | Estado de resultados simplificado, ingresos vs gastos por mes, utilidad mensual, distribución de gastos (dona), punto de equilibrio |
 | Productos | Ventas, costo, utilidad y margen por producto; top 5 por utilidad; inventario con semáforo (🟢🟡🔴) |
 | Flujo de efectivo | Entradas vs salidas, efectivo final y **proyección simple a 30 días** (línea base con promedio móvil; ver nota de fase 2) |
@@ -75,11 +75,11 @@ Todas las tablas de negocio incluyen `id_empresa` (FK a `empresas`). Montos en `
 usuarios ── usuarios_empresas (rol: dueno | consulta) ── empresas
 empresas ──┬── productos_cat ──┬── historial_ventas   (registro de ventas)
            │                   └── compras_producto   (registro de compras de producto)
-           ├── gastos_operativos  (tipo: fijo | variable | retiro)
+           ├── gastos_operativos  (tipo: fijo | variable)
            └── importaciones
 ```
 
-> Implementado: `gastos_fijos` y `gastos_variables` se unificaron en `gastos_operativos` con `tipo`; se agregaron `usuarios`, `usuarios_empresas` y `compras_producto`; `tipo='retiro'` registra el dinero que el dueño saca (afecta el efectivo, no la utilidad).
+> Implementado: `gastos_fijos` y `gastos_variables` se unificaron en `gastos_operativos` con `tipo`; se agregaron `usuarios`, `usuarios_empresas` y `compras_producto`.
 
 - **empresas:** `id_empresa` (PK), `nombre_negocio`, `giro`, `regimen_fiscal` (nullable, fase 2), `fecha_registro`.
 - **gastos_fijos:** `id_gasto_fijo` (PK), `id_empresa`, `concepto`, `monto_mensual`, `dia_pago`. Renta, nómina base, servicios fijos, licencias.

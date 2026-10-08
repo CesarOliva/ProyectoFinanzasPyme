@@ -80,7 +80,7 @@ CREATE TABLE gastos_operativos (
 	fecha DATE NOT NULL, 
 	concepto VARCHAR(150) NOT NULL, 
 	categoria VARCHAR(80) NOT NULL, 
-	tipo ENUM('fijo','variable','retiro') NOT NULL COMMENT 'fijo = renta, nómina, servicios; variable = insumos, fletes, comisiones; retiro = dinero que el dueño saca para uso personal (afecta el efectivo, no la utilidad)', 
+	tipo ENUM('fijo','variable') NOT NULL COMMENT 'fijo = renta, nómina, servicios; variable = insumos, fletes, comisiones', 
 	monto NUMERIC(12, 2) NOT NULL, 
 	id_importacion INTEGER, 
 	PRIMARY KEY (id_gasto), 

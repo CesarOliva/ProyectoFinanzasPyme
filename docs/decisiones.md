@@ -27,8 +27,8 @@ Registro breve de las decisiones importantes y su porqué (proyecto de aprendiza
 ## Modelo de datos
 
 - Se combinaron las tablas pedidas (usuarios, ventas, productos, **compras de producto**, **gastos operativos**) con las de CLAUDE.md §5.
-- `gastos_fijos` y `gastos_variables` se unificaron en **`gastos_operativos`** con un campo `tipo` (`fijo` | `variable` | `retiro`). Es un libro diario fechado: la renta de cada mes es un registro, lo que facilita el flujo de efectivo y la importación desde Excel.
-- **Retiros del dueño** (`tipo='retiro'`): en una tiendita el dueño saca dinero para uso personal. No es gasto del negocio (no baja la utilidad), pero sí sale de la caja. Sin este concepto, el efectivo simulado crecía sin límite durante dos años y ninguna alerta de flujo resultaba creíble. Además le enseña al usuario la diferencia entre gasto y retiro.
+- `gastos_fijos` y `gastos_variables` se unificaron en **`gastos_operativos`** con un campo `tipo` (`fijo` | `variable`). Es un libro diario fechado: la renta de cada mes es un registro, lo que facilita el flujo de efectivo y la importación desde Excel.
+- En un inicio existía `tipo='retiro'` para registrar el dinero que el dueño saca para uso personal. Se eliminó (oct 2026): confundía a los usuarios no contadores, complicaba la importación y duplicaba el gasto variable en el flujo. Si un archivo trae un concepto como "Retiro personal", se clasifica como gasto variable. El polo opuesto era "gasto" vs "no gasto", no "gasto del negocio" vs "retiro".
 - `compras_producto` alimenta el flujo de efectivo (lo que se pagó a proveedores); el costo de ventas sale de `historial_ventas.costo_unitario`.
 - `empresas.umbrales_alerta` (JSON) guarda los umbrales personalizados de cada negocio, así no hay umbrales fijos en el código.
 - El esquema tiene una sola fuente, `app/db/models.py`. De ahí salen el SQL de MySQL, la migración de Alembic y la base de pruebas.

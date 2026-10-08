@@ -1,43 +1,59 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { opcionesPeriodo, type OpcionPeriodo, type TipoPeriodo } from "../lib/periodos";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { rangosPeriodo, ventanasPeriodo, type OpcionPeriodo, type VentanaPeriodo } from "../lib/periodos";
 import { useSesion } from "./Sesion";
 
 interface ValorPeriodo {
-  tipo: TipoPeriodo;
-  setTipo: (t: TipoPeriodo) => void;
-  opciones: OpcionPeriodo[];
-  seleccion: OpcionPeriodo | null;
+  /** Las anchuras del primer select: 1 mes, 2 meses, 3 meses, 6 meses, 1 año, 2 años. */
+  periodos: OpcionPeriodo[];
+  meses: string;
+  setMeses: (meses: string) => void;
+  /** Las ventanas disponibles (mes o rango de meses) para la anchura elegida. */
+  ventanas: VentanaPeriodo[];
+  seleccion: VentanaPeriodo | null;
   setClave: (clave: string) => void;
   /** Parámetros listos para la API. */
   params: { desde?: string; hasta?: string };
 }
 
 const Contexto = createContext<ValorPeriodo | null>(null);
+const MESES_INICIAL = "3";
 
 export function ProveedorPeriodo({ children }: { children: ReactNode }) {
   const { empresa } = useSesion();
-  const [tipo, setTipo] = useState<TipoPeriodo>("mes");
+  const [meses, setMesesEstado] = useState<string>(MESES_INICIAL);
   const [clave, setClave] = useState<string | null>(null);
 
-  const opciones = useMemo(
-    () => (empresa?.primer_dato && empresa.ultimo_dato ? opcionesPeriodo(tipo, empresa.primer_dato, empresa.ultimo_dato) : []),
-    [tipo, empresa?.primer_dato, empresa?.ultimo_dato],
+  const periodos = useMemo(
+    () => (empresa?.ultimo_dato ? rangosPeriodo(empresa.ultimo_dato) : []),
+    [empresa?.ultimo_dato],
   );
 
-  // Al cambiar de empresa o de tipo, se elige el periodo más reciente.
-  useEffect(() => setClave(opciones[0]?.clave ?? null), [opciones]);
+  const ventanas = useMemo(
+    () =>
+      empresa?.primer_dato && empresa.ultimo_dato
+        ? ventanasPeriodo(empresa.primer_dato, empresa.ultimo_dato, Number(meses))
+        : [],
+    [empresa?.primer_dato, empresa?.ultimo_dato, meses],
+  );
 
-  const seleccion = opciones.find((o) => o.clave === clave) ?? opciones[0] ?? null;
+  const seleccion = ventanas.find((v) => v.clave === clave) ?? ventanas[0] ?? null;
+
+  const setMeses = (m: string) => {
+    setClave(null);
+    setMesesEstado(m);
+  };
+
   const valor = useMemo<ValorPeriodo>(
     () => ({
-      tipo,
-      setTipo,
-      opciones,
+      periodos,
+      meses,
+      setMeses,
+      ventanas,
       seleccion,
       setClave,
       params: seleccion ? { desde: seleccion.desde, hasta: seleccion.hasta } : {},
     }),
-    [tipo, opciones, seleccion],
+    [periodos, meses, ventanas, seleccion],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

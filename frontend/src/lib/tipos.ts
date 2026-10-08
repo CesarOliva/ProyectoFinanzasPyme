@@ -62,7 +62,6 @@ export interface KPIs {
   margen: number | null;
   margen_bruto: number | null;
   unidades: number;
-  retiros: number;
 }
 
 export interface Variaciones {
@@ -133,7 +132,6 @@ export interface Finanzas {
   mensual: PuntoSerie[];
   distribucion_gastos: CategoriaGasto[];
   punto_equilibrio: PuntoEquilibrio;
-  retiros: number;
 }
 
 export type Semaforo = "verde" | "amarillo" | "rojo" | "sin_movimiento";
@@ -173,7 +171,6 @@ export interface PuntoFlujoMensual {
   entradas: number;
   compras: number;
   gastos: number;
-  retiros: number;
   neto: number;
   saldo: number;
 }
@@ -197,7 +194,6 @@ export interface Flujo {
   entradas: number;
   compras: number;
   gastos: number;
-  retiros: number;
   saldo_final: number;
   mensual: PuntoFlujoMensual[];
   diario: { fecha: string; saldo: number }[];
