@@ -19,6 +19,10 @@ export interface Mensaje {
 interface ValorChat {
   mensajes: Mensaje[];
   ocupado: boolean;
+  chatAbierto: boolean;
+  abrirChat: () => void;
+  cerrarChat: () => void;
+  alternarChat: () => void;
   enviar: (texto: string) => void;
   cancelar: () => void;
   limpiar: () => void;
@@ -54,7 +58,11 @@ export function ProveedorChat({ children }: { children: ReactNode }) {
   const { params } = usePeriodo();
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [ocupado, setOcupado] = useState(false);
+  const [chatAbierto, setChatAbierto] = useState(false);
   const [vozAutomatica, setVozAutomatica] = useState(true);
+  const abrirChat = useCallback(() => setChatAbierto(true), []);
+  const cerrarChat = useCallback(() => setChatAbierto(false), []);
+  const alternarChat = useCallback(() => setChatAbierto((abierto) => !abierto), []);
   const control = useRef<AbortController | null>(null);
   const enCurso = useRef<string | null>(null);
   const ultimaIntencion = useRef<string | null>(null);
@@ -146,6 +154,10 @@ export function ProveedorChat({ children }: { children: ReactNode }) {
     () => ({
       mensajes,
       ocupado,
+      chatAbierto,
+      abrirChat,
+      cerrarChat,
+      alternarChat,
       enviar,
       cancelar,
       limpiar: () => setMensajes([]),
@@ -158,7 +170,7 @@ export function ProveedorChat({ children }: { children: ReactNode }) {
       leer: (m) => m.respuesta && hablar(textoALeer(m.respuesta), m.id),
       callar,
     }),
-    [mensajes, ocupado, enviar, cancelar, vozAutomatica, hablando, hablar, callar],
+    [mensajes, ocupado, chatAbierto, abrirChat, cerrarChat, alternarChat, enviar, cancelar, vozAutomatica, hablando, hablar, callar],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

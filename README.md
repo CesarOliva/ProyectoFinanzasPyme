@@ -79,6 +79,16 @@ alembic upgrade head      # base vacía
 alembic stamp head        # si cargaste cuentas_claras.sql (las tablas ya existen)
 ```
 
+### Pruebas del backend
+
+Desde la raíz del proyecto, ejecuta pytest con el entorno virtual del backend:
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest
+```
+
+También puedes activar el entorno con `.\.venv\Scripts\Activate.ps1` y ejecutar `python -m pytest`. No uses `npm test` en `backend`: el proyecto de Node está en `frontend`.
+
 ## 4. Frontend
 
 ```powershell

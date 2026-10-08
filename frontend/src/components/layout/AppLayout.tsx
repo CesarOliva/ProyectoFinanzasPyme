@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, Sparkles, X } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { useChat } from "../../context/Chat";
 import { usePeriodo } from "../../context/Periodo";
 import { useSesion } from "../../context/Sesion";
 import { useApi } from "../../hooks/useApi";
@@ -12,9 +13,9 @@ import { Topbar } from "./Topbar";
 
 export function AppLayout({ tema, alternarTema }: { tema: "light" | "dark"; alternarTema: () => void }) {
   const { empresa } = useSesion();
+  const { chatAbierto, cerrarChat, alternarChat } = useChat();
   const { params } = usePeriodo();
   const ubicacion = useLocation();
-  const [chatAbierto, setChatAbierto] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [esMovil, setEsMovil] = useState(() => window.matchMedia("(max-width: 900px)").matches);
   const alertas = useApi<Alerta[]>(empresa?.tiene_datos && params.desde ? `/empresas/${empresa.id_empresa}/alertas` : null, params);
@@ -27,8 +28,8 @@ export function AppLayout({ tema, alternarTema }: { tema: "light" | "dark"; alte
   }, []);
   useEffect(() => {
     setMenuAbierto(false);
-    setChatAbierto(false);
-  }, [ubicacion.pathname]);
+    cerrarChat();
+  }, [ubicacion.pathname, cerrarChat]);
 
   const rojas = alertas.datos?.filter((a) => a.nivel === "rojo").length ?? 0;
   const enAsistente = ubicacion.pathname === "/asistente";
@@ -72,7 +73,7 @@ export function AppLayout({ tema, alternarTema }: { tema: "light" | "dark"; alte
               </motion.div>
             )}
           </AnimatePresence>
-          <motion.button className="fab-chat" onClick={() => setChatAbierto((v) => !v)} whileHover={{ y: -3 }} whileTap={{ scale: 0.95 }}
+          <motion.button className="fab-chat" onClick={alternarChat} whileHover={{ y: -3 }} whileTap={{ scale: 0.95 }}
             initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6, type: "spring", stiffness: 260, damping: 22 }}
             aria-expanded={chatAbierto} aria-label={chatAbierto ? "Cerrar chat" : "Abrir chat con Clara"}>
             <span className="orbe">{chatAbierto ? <X size={16} /> : <Sparkles size={16} />}</span>
